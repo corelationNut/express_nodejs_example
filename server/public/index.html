@@ -1,0 +1,103 @@
+<html>
+    <head>
+        <title> Example HTML call with database </title>
+    </head>
+
+    <script src="https://code.jquery.com/jquery-3.4.0.js"> </script>
+
+
+    <script>
+
+        renderWithAdvanceDetails = function(result, status) {
+
+            var container = $("ul#container_member_list");
+                
+            result.forEach( response =>{
+
+                const memberId = response["id"];
+                const memberName = response["name"];
+
+                // prepare template element
+                var element_template = $("li.template_list").clone().removeClass("template_list").removeAttr("hidden");
+                window.test = element_template;
+                container.append(element_template)
+                
+                // get element member id in template, then put member id inside element
+                element_template.find(".member_id").html(memberId);
+                
+                // get element member name in template, then add event when name change calling API to update name
+                element_template.find(".member_name")
+                .val(memberName)
+                .change(function(){
+                    let targetId = memberId;
+                    let newName = $( this ).val();
+                    
+                    $.ajax({
+                        url: "member/"+targetId,
+                        type: 'PUT',
+                        contentType: "application/json",
+                        dataType: "json",
+                        data: JSON.stringify({   
+                            "new_name": newName 
+                        }),
+                        success: function(responseUpdate) {
+                            console.log(responseUpdate);
+                        }
+                    });
+                });
+            });
+        }
+
+        window.onload = function(){
+
+            /*
+               Testing section. WITHOUT CALLING API (test FE/HTML only)
+            */
+           
+            /*
+            const members = [
+                {id: 1, name: "mike"},
+                {id: 2, name: "john"},
+                {id: 3, name: "dave"},
+            ];
+            renderWithAdvanceDetails(members, "success");
+            */
+
+            /*
+                End of Testing
+            */
+
+            /*
+               CALLING API to get data render in html
+            */
+           
+            $.get("member/members", function(result, status){
+                //var responsesJSONFormat = JSON.parse(result); // no need header already return as JSON
+                $("#total_member").html(result.length);
+                renderWithAdvanceDetails(result, status);
+            });
+        }
+    </script>
+
+<body>
+    <div> we have total member: <label id="total_member"></label> </div>
+
+    <div>
+        <h1> list of member</h1>
+
+        <ul id="container_member_list">
+            
+            <!-- HTML TEMPLATE -->
+            <li class="template_list" hidden> 
+                <div> id : <label class="member_id"></label> </div>
+                <div> name : <input class="member_name" value="" onchange="">  </input> </div>
+            </li>
+            
+        </ul>
+
+    </div>
+
+</body>
+
+
+</html>
